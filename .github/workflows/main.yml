@@ -11,15 +11,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # --- NOUVELLE ÉTAPE : Vérifie les fichiers ---
-      - name: List all files (debug)
+      # --- ÉTAPE 1 : Vérifie TOUS les fichiers critiques ---
+      - name: Verify project structure
         run: |
-          echo "=== Contenu du dépôt ==="
-          ls -R
-          echo "=== Vérification de build.gradle ==="
-          ls -la build.gradle || echo "ERREUR: build.gradle introuvable !"
-          echo "=== Vérification de gradlew ==="
-          ls -la gradlew || echo "ERREUR: gradlew introuvable !"
+          echo "=== Vérification des fichiers ==="
+          if [ ! -f build.gradle ]; then
+            echo "❌ ERREUR: build.gradle INTROUVABLE à la racine !"
+            echo "Contenu du dépôt:"
+            ls -R
+            exit 1
+          fi
+          if [ ! -f gradlew ]; then
+            echo "❌ ERREUR: gradlew INTROUVABLE à la racine !"
+            ls -R
+            exit 1
+          fi
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+            echo "❌ ERREUR: gradle-wrapper.jar INTROUVABLE !"
+            ls -R gradle/wrapper/
+            exit 1
+          fi
+          echo "✅ Tous les fichiers sont présents !"
+
+      - name: Fix gradlew permissions
+        run: chmod +x gradlew
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -30,15 +45,8 @@ jobs:
       - name: Verify Java
         run: java -version
 
-      # --- NOUVELLE ÉTAPE : Affiche la version de Gradle ---
-      - name: Check Gradle wrapper
-        run: ./gradlew --version
-
-      # --- ÉTAPE DE BUILD AVEC PLUS DE DÉTAILS ---
-      - name: Build with Gradle (with full logs)
-        run: |
-          chmod +x gradlew
-          ./gradlew :app:assembleDebug --stacktrace --info
+      - name: Build with Gradle
+        run: ./gradlew :app:assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
