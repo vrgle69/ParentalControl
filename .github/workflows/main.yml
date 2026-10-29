@@ -11,19 +11,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # --- NOUVELLE ÉTAPE : Vérifie les fichiers ---
+      - name: List all files (debug)
+        run: |
+          echo "=== Contenu du dépôt ==="
+          ls -R
+          echo "=== Vérification de build.gradle ==="
+          ls -la build.gradle || echo "ERREUR: build.gradle introuvable !"
+          echo "=== Vérification de gradlew ==="
+          ls -la gradlew || echo "ERREUR: gradlew introuvable !"
+
       - name: Set up JDK 17
-        uses: actions/setup-java@v5  
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build with Gradle
+      - name: Verify Java
+        run: java -version
+
+      # --- NOUVELLE ÉTAPE : Affiche la version de Gradle ---
+      - name: Check Gradle wrapper
+        run: ./gradlew --version
+
+      # --- ÉTAPE DE BUILD AVEC PLUS DE DÉTAILS ---
+      - name: Build with Gradle (with full logs)
         run: |
           chmod +x gradlew
-          ./gradlew :app:assembleDebug --stacktrace
-
-      - name: List build outputs (debug)
-        run: ls -R app/build/outputs/
+          ./gradlew :app:assembleDebug --stacktrace --info
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
