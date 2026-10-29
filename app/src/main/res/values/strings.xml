@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vibe Parental Control</string>
+    <string name="device_id_label">ID: %s</string>
+    <string name="select_duration">Choisis la durée:</string>
+    <string name="start_lock">🔒 Bloquer</string>
+    <string name="stop_lock">❌ Arrêter</string>
+    <string name="status_active">✅ Bloqué jusqu\'à %s</string>
+    <string name="status_inactive">❌ Pas bloqué</string>
+    <string name="btn_30min">30 min</string>
+    <string name="btn_1h">1h</string>
+    <string name="btn_1h30">1h30</string>
+    <string name="btn_2h">2h</string>
+    <string name="confirm_stop">Voulez-vous arrêter le blocage ?</string>
+    <string name="accessibility_service_description">Fermer les apps bloquées.</string>
+</resources>
