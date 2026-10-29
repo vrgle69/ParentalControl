@@ -11,15 +11,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # --- 1. Force les permissions sur gradlew ---
       - name: Fix gradlew permissions
         run: chmod +x gradlew
-
-      # --- 2. Vérifie que gradlew fonctionne ---
-      - name: Test gradlew
-        run: |
-          echo "===== Test de gradlew ====="
-          ./gradlew --version || echo "❌ gradlew ne fonctionne pas !"
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -27,17 +20,32 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # --- 3. Lance le build ---
-      - name: Build with Gradle
+      # --- NOUVELLE ÉTAPE : Affiche les logs COMPLETS de Gradle ---
+      - name: Build with Gradle (FULL LOGS)
         run: |
-          ./gradlew clean :app:assembleDebug --stacktrace
+          echo "===== 🔍 DÉMARRAGE DU BUILD GRADLE ====="
+          ./gradlew clean :app:assembleDebug --stacktrace --debug 2>&1 | tee build_logs.txt
+          echo "===== 📄 FIN DES LOGS GRADLE ====="
 
-      # --- 4. Cherche et upload l'APK ---
-      - name: Find and upload APK
+      # --- NOUVELLE ÉTAPE : Affiche les logs en cas d'erreur ---
+      - name: Show Gradle logs on failure
+        if: failure()
         run: |
-          echo "===== Recherche de l'APK ====="
-          find . -name "*.apk" -exec echo "✅ APK trouvé : {}" \;
-        continue-on-error: true
+          echo "===== ❌ ERREUR DANS LE BUILD ! VOICI LES LOGS : ====="
+          cat build_logs.txt
+          echo "===== ❌ FIN DES LOGS D'ERREUR ====="
+
+      - name: Vérifier si l'APK existe
+        run: |
+          echo "===== 🔎 RECHERCHE DE L'APK ====="
+          if [ -f app/build/outputs/apk/debug/app-debug.apk ]; then
+            echo "✅ ✅ ✅ SUCCÈS ! L'APK A ÉTÉ GÉNÉRÉE ! ✅ ✅ ✅"
+            ls -lh app/build/outputs/apk/debug/app-debug.apk
+          else
+            echo "❌ ❌ ❌ L'APK N'A PAS ÉTÉ GÉNÉRÉE ❌ ❌ ❌"
+            echo "Contenu de app/build/outputs/"
+            ls -R app/build/outputs/ || echo "Dossier introuvable"
+          fi
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
