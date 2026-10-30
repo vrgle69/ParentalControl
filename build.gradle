@@ -1,10 +1,17 @@
 // Top-level build file
 buildscript {
     repositories {
-        google()  // 
+        google()  // ⭐⭐⭐ OBLIGATOIRE pour le plugin Android
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.2.2'  // 
+        classpath 'com.android.tools.build:gradle:7.2.2'  // ⭐ Version ultra-stable
+    }
+}
+
+allprojects {
+    repositories {
+        google()  // ⭐⭐⭐ OBLIGATOIRE ici aussi
+        mavenCentral()
     }
 }
