@@ -1,4 +1,4 @@
-name: Build Android APK
+ame: Build Android APK
 
 on:
   push:
@@ -11,8 +11,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fix gradlew permissions
-        run: chmod +x gradlew
+      # --- 1. Installe le SDK Android (ÉTAPE MANQUANTE !) ---
+      - name: Install Android SDK
+        run: |
+          echo "===== Installation du SDK Android ====="
+          sudo apt-get update
+          sudo apt-get install -y wget unzip
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O /tmp/sdk-tools.zip
+          unzip /tmp/sdk-tools.zip -d $HOME/android-sdk
+          export ANDROID_HOME=$HOME/android-sdk
+          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
+          yes | sdkmanager --licenses > /dev/null
+          sdkmanager "platforms;android-33" "build-tools;33.0.0" > /dev/null
+          echo "===== SDK Android installé ====="
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -20,32 +31,14 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # --- NOUVELLE ÉTAPE : Affiche les logs COMPLETS de Gradle ---
-      - name: Build with Gradle (FULL LOGS)
-        run: |
-          echo "===== 🔍 DÉMARRAGE DU BUILD GRADLE ====="
-          ./gradlew clean :app:assembleDebug --stacktrace --debug 2>&1 | tee build_logs.txt
-          echo "===== 📄 FIN DES LOGS GRADLE ====="
+      - name: Fix gradlew permissions
+        run: chmod +x gradlew
 
-      # --- NOUVELLE ÉTAPE : Affiche les logs en cas d'erreur ---
-      - name: Show Gradle logs on failure
-        if: failure()
+      - name: Build APK
         run: |
-          echo "===== ❌ ERREUR DANS LE BUILD ! VOICI LES LOGS : ====="
-          cat build_logs.txt
-          echo "===== ❌ FIN DES LOGS D'ERREUR ====="
-
-      - name: Vérifier si l'APK existe
-        run: |
-          echo "===== 🔎 RECHERCHE DE L'APK ====="
-          if [ -f app/build/outputs/apk/debug/app-debug.apk ]; then
-            echo "✅ ✅ ✅ SUCCÈS ! L'APK A ÉTÉ GÉNÉRÉE ! ✅ ✅ ✅"
-            ls -lh app/build/outputs/apk/debug/app-debug.apk
-          else
-            echo "❌ ❌ ❌ L'APK N'A PAS ÉTÉ GÉNÉRÉE ❌ ❌ ❌"
-            echo "Contenu de app/build/outputs/"
-            ls -R app/build/outputs/ || echo "Dossier introuvable"
-          fi
+          echo "===== Lancement du build ====="
+          ./gradlew :app:assembleDebug --stacktrace
+          echo "===== Build terminé ====="
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
